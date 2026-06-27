@@ -145,7 +145,7 @@ container build -t mcp-bricks-co:latest .
 docker compose up -d
 ```
 
-See [SOCKATINER.md](../SOCKATINER.md) for Apple container + Docker Compose setup.
+See [SOCKTAINER.md](../SOCKTAINER.md) for Apple container + Docker Compose setup.
 
 ---
 

@@ -125,7 +125,7 @@ What monthly income can I expect from bricks.co at retirement in 19 years?
 ├── .mcp.json                  # Claude Code MCP registration
 ├── CLAUDE.md                  # Investment rules (enforced by Claude)
 ├── API.md                     # bricks.co API reference
-├── SOCKATINER.md              # Docker + Apple container setup
+├── SOCKTAINER.md              # Docker + Apple container setup
 ├── docker-compose.yml         # Container deployment
 └── mcp-bricks/
     ├── Dockerfile
@@ -161,7 +161,7 @@ Full endpoint documentation in [`API.md`](API.md).
 
 ## Docker / Apple container
 
-See [`SOCKATINER.md`](SOCKATINER.md) for running via Docker Compose or Apple's native `container` CLI on Apple Silicon.
+See [`SOCKTAINER.md`](SOCKTAINER.md) for running via Docker Compose or Apple's native `container` CLI on Apple Silicon.
 
 ```bash
 docker compose up -d
