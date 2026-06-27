@@ -1,0 +1,18 @@
+# HAR files — contain session tokens
+*.har
+
+# Personal financial analysis
+ANALYSE.md
+QA.md
+API.md
+*.svg
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+dist/
+*.egg-info/
+
+# macOS
+.DS_Store

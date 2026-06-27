@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "bricks-co": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "run",
+        "--project", "/Users/clement_igonet/project/bricks.co/mcp-bricks",
+        "python", "-m", "mcp_bricks.server"
+      ],
+      "env": {
+        "PYTHONPATH": "/Users/clement_igonet/project/bricks.co/mcp-bricks/src",
+        "COOKIE_FILE": "/Users/clement_igonet/.local/share/bricks-co/session.json"
+      }
+    }
+  }
+}

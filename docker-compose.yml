@@ -1,0 +1,15 @@
+services:
+  mcp-bricks:
+    build:
+      context: ./mcp-bricks
+      dockerfile: Dockerfile
+    image: mcp-bricks-co:latest
+    container_name: mcp-bricks-co
+    stdin_open: true
+    volumes:
+      - bricks_session:/data
+    environment:
+      - COOKIE_FILE=/data/session.json
+
+volumes:
+  bricks_session:
