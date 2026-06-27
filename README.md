@@ -161,13 +161,54 @@ Full endpoint documentation in [`API.md`](API.md).
 
 ## Docker / Apple container
 
-See [`SOCKTAINER.md`](SOCKTAINER.md) for running via Docker Compose or Apple's native `container` CLI on Apple Silicon.
+See [`SOCKTAINER.md`](SOCKTAINER.md) for the full Apple container + Docker Compose setup.
 
-```bash
-docker compose up -d
+### docker-compose.yml
+
+```yaml
+services:
+  mcp-bricks:
+    build:
+      context: ./mcp-bricks
+      dockerfile: Dockerfile
+    image: mcp-bricks-co:latest
+    container_name: mcp-bricks-co
+    stdin_open: true
+    volumes:
+      - bricks_session:/data        # session cookie persisted across restarts
+    environment:
+      - COOKIE_FILE=/data/session.json
+
+volumes:
+  bricks_session:
 ```
 
-> Note: the MCP server itself should still run via `uv` on the host for Cloudflare compatibility. Docker is useful for auxiliary services or CI.
+### Commands
+
+```bash
+# Build the image
+docker compose build
+
+# Start in background
+docker compose up -d
+
+# View logs
+docker compose logs -f mcp-bricks
+
+# Stop
+docker compose down
+
+# Rebuild after code changes
+docker compose up -d --build
+```
+
+### Session persistence
+
+The session cookie is stored in the named volume `bricks_session` at `/data/session.json`. It survives `docker compose down` and is reused on the next `up`.
+
+To inject a session from the browser, call `set_session` from Claude Code — the cookie is written to the volume automatically.
+
+> **Note:** the MCP server itself should still run via `uv` on the host (see [Quick start](#quick-start)) for Cloudflare compatibility. Docker is useful for auxiliary services or CI pipelines.
 
 ---
 
