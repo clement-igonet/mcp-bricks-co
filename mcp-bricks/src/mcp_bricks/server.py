@@ -175,12 +175,74 @@ async def get_project(project_id: str) -> str:
     return _json(await api.get_project(project_id))
 
 
+_PROPERTY_KEYS = (
+    "propertyId", "propertyName", "investorContractType",
+    "brickCount", "brickPrice", "contractRemainingMonths",
+    "maturityDate", "refundStatus", "cumulatedRevenues",
+    "lastEcheancePeriod", "revenueStartDate",
+)
+
+
+def _compact_property(p: dict) -> dict:
+    out = {k: p.get(k) for k in _PROPERTY_KEYS}
+    out["capitalEuros"] = round(p.get("brickCount", 0) * p.get("brickPrice", 0) / 100, 2)
+    out["cumulatedRevenuesEuros"] = round(p.get("cumulatedRevenues", 0) / 100, 2)
+    return out
+
+
 @mcp.tool()
 async def get_portfolio_properties() -> str:
     """Get all investor portfolio properties grouped by status (ongoing / refunded).
-    Includes remaining contract months, brick count, and refund status per property.
-    Key for tracking upcoming capital reimbursements."""
-    return _json(await api.get_portfolio_properties())
+    Returns a compact summary per property: contract type, remaining months, capital,
+    maturity date, refund status. Key for tracking upcoming capital reimbursements."""
+    raw = await api.get_portfolio_properties()
+    ongoing = [_compact_property(p) for p in raw.get("ongoing", [])]
+    refunded = [_compact_property(p) for p in raw.get("refunded", [])]
+    ongoing.sort(key=lambda p: (p.get("contractRemainingMonths") or 999))
+    total_capital = sum(p["capitalEuros"] for p in ongoing)
+    return _json({
+        "summary": {
+            "ongoingCount": len(ongoing),
+            "refundedCount": len(refunded),
+            "totalCapitalEuros": round(total_capital, 2),
+        },
+        "ongoing": ongoing,
+        "refunded": refunded,
+    })
+
+
+@mcp.tool()
+async def get_upcoming_reimbursements(months: int = 3) -> str:
+    """List properties whose capital reimbursement is due within the next N months.
+    Sorted by remaining months ascending. Includes overdue (0 months remaining).
+
+    Args:
+        months: Lookahead window in months (default 3).
+    """
+    raw = await api.get_portfolio_properties()
+    upcoming = [
+        _compact_property(p)
+        for p in raw.get("ongoing", [])
+        if (p.get("contractRemainingMonths") or 999) <= months
+    ]
+    upcoming.sort(key=lambda p: (p.get("contractRemainingMonths") or 999))
+    total = sum(p["capitalEuros"] for p in upcoming)
+    return _json({
+        "windowMonths": months,
+        "count": len(upcoming),
+        "totalCapitalEuros": round(total, 2),
+        "properties": upcoming,
+    })
+
+
+_DETAIL_KEYS = (
+    "propertyId", "propertyName", "investorContractType",
+    "brickCount", "brickPrice", "contractRemainingMonths",
+    "contractDurationMonths", "maturityDate", "revenueStartDate",
+    "refundStatus", "cumulatedRevenues", "yearlyReturnRate",
+)
+
+_UPDATE_KEYS = ("date", "description", "type")
 
 
 @mcp.tool()
@@ -192,7 +254,15 @@ async def get_portfolio_property(property_id: str) -> str:
     Args:
         property_id: The property UUID
     """
-    return _json(await api.get_portfolio_property(property_id))
+    raw = await api.get_portfolio_property(property_id)
+    out = {k: raw.get(k) for k in _DETAIL_KEYS}
+    out["capitalEuros"] = round(raw.get("brickCount", 0) * raw.get("brickPrice", 0) / 100, 2)
+    out["cumulatedRevenuesEuros"] = round(raw.get("cumulatedRevenues", 0) / 100, 2)
+    out["propertyUpdates"] = [
+        {k: u.get(k) for k in _UPDATE_KEYS}
+        for u in raw.get("propertyUpdates", [])
+    ]
+    return _json(out)
 
 
 # Keywords that signal a payment problem in a property update description
